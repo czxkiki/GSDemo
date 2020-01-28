@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">GSDemo</string>
+    <string name="title_activity_demo">GSDemoActivity</string>
+    <string name="disconnected">Disconnected</string>
+    <string name="product_information">Product Information</string>
+    <string name="connection_loose">Status: No Product Connected</string>
+    <string name="sdk_version">DJI SDK Version: %1$s</string>
+
+    <string name="success">Success</string>
+    <string name="title_activity_menu">MenuActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+
+    <string name="component_listview_redirect_to_djigo">Redirect to DJI Go</string>
+    <string name="component_listview_redirect_go4">DJI Go 4</string>
+    <string name="component_listview_redirect_go4_failure">Cannot redirect to DJI Go 4, Please check if DJI Go 4 has installed</string>
+    <string name="component_listview_redirect_go">DJI Go</string>
+    <string name="component_listview_redirect_go_failure">Cannot redirect to DJI Go, Please check if DJI Go has installed</string>
+</resources>
