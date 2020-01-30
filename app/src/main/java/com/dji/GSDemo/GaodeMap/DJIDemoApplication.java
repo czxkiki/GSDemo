@@ -13,6 +13,9 @@ import androidx.core.content.ContextCompat;
 
 import dji.sdk.base.BaseComponent;
 import dji.sdk.base.BaseProduct;
+import dji.sdk.camera.Camera;
+import dji.sdk.products.Aircraft;
+import dji.sdk.products.HandHeld;
 import dji.sdk.sdkmanager.DJISDKInitEvent;
 import dji.sdk.sdkmanager.DJISDKManager;
 import dji.common.error.DJIError;
@@ -49,7 +52,6 @@ public class DJIDemoApplication extends Application {
         }
         return mProduct;
     }
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -161,5 +163,19 @@ public class DJIDemoApplication extends Application {
             getApplicationContext().sendBroadcast(intent);
         }
     };
+    public static synchronized Camera getCameraInstance() {
 
+        if (getProductInstance() == null) return null;
+
+        Camera camera = null;
+
+        if (getProductInstance() instanceof Aircraft){
+            camera = ((Aircraft) getProductInstance()).getCamera();
+
+        } else if (getProductInstance() instanceof HandHeld) {
+            camera = ((HandHeld) getProductInstance()).getCamera();
+        }
+
+        return camera;
+    }
 }

@@ -1,6 +1,10 @@
 package com.dji.GSDemo.GaodeMap;
 
 import android.util.Log;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.BufferedReader;
@@ -10,6 +14,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.Array;
+import java.util.List;
 
 /**
  * @author zhangyan
@@ -19,19 +25,18 @@ import java.net.URL;
 public class OperateData {
 
     /**
-     *
-     * @param stringArray  将string数组转成json格式字符串
+     * @param stringArray 将string数组转成json格式字符串
      * @return
      */
-    public String stringTojson(String stringArray[])
-    {    JSONObject jsonObject = null;
-        if(stringArray == null) {
+    public String stringTojson(String stringArray[]) {
+        JSONObject jsonObject = null;
+        if (stringArray == null) {
             return "";
         }
         jsonObject = new JSONObject();
         try {
-            jsonObject.put("username",stringArray[0]);
-            jsonObject.put("password",stringArray[1]);
+            jsonObject.put("username", stringArray[0]);
+            jsonObject.put("password", stringArray[1]);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -41,16 +46,16 @@ public class OperateData {
 
     /**
      * 功能：json字符串转字符串
+     *
      * @param jsonString
      * @return String
      */
-    public int jsonToint(String jsonString)
-    {
-        int type=1;
+    public int jsonToint(String jsonString) {
+        int type = 1;
         try {
             JSONObject responseJson = new JSONObject(jsonString);
             type = responseJson.getInt("type");
-            Log.i("type",""+type);
+            Log.i("type", "" + type);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -59,27 +64,27 @@ public class OperateData {
 
 
     /**
-     *功能：发送jsonString到服务器并解析回应
-     * @param jsonString mh url
-     * handler 参数规定
-     *  msg.what:
-     *  0：服务器连接失败
-     *  1：注册/登录成功 跳转页面
-     *  2：用户已存在/登录失败
-     *  3：地址为空
-     *  4： 连接超时
+     * 功能：发送jsonString到服务器并解析回应
      *
+     * @param jsonString mh url
+     *                   handler 参数规定
+     *                   msg.what:
+     *                   0：服务器连接失败
+     *                   1：注册/登录成功 跳转页面
+     *                   2：用户已存在/登录失败
+     *                   3：地址为空
+     *                   4： 连接超时
      */
-    public void sendData(final  String jsonString, final android.os.Handler mh,final URL url) {
+    public void sendData(final String jsonString, final android.os.Handler mh, final URL url) {
 
-        if (url==null){
+        if (url == null) {
             mh.sendEmptyMessage(3);
-        }else{
+        } else {
             new Thread(new Runnable() {
-                
+
                 @Override
                 public void run() {
-                    
+
                     HttpURLConnection httpURLConnection = null;
                     BufferedReader bufferedReader = null;
                     try {
@@ -105,13 +110,13 @@ public class OperateData {
 
 
                         //发送数据
-                        Log.i("JSONString",jsonString);
+                        Log.i("JSONString", jsonString);
                         DataOutputStream os = new DataOutputStream(httpURLConnection.getOutputStream());
                         os.writeBytes(jsonString);
                         os.flush();
                         os.close();
-                        Log.i("状态码：","" + httpURLConnection.getResponseCode());
-                        
+                        Log.i("状态码：", "" + httpURLConnection.getResponseCode());
+
                         if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
 
                             bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
@@ -123,11 +128,12 @@ public class OperateData {
                             }
                             int type = jsonToint(response.toString());
                             //根据
-                            switch (type)
-                            {
-                                case 0:mh.sendEmptyMessage(1);
+                            switch (type) {
+                                case 0:
+                                    mh.sendEmptyMessage(1);
                                     break;
-                                case 1:mh.sendEmptyMessage(2);
+                                case 1:
+                                    mh.sendEmptyMessage(2);
                                     break;
                                 default:
                             }
@@ -158,3 +164,16 @@ public class OperateData {
         }
     }
 }
+    //List转JSONArray
+//    public list listTojson(list<>){
+//        List<T> list = new ArrayList<T>();
+//        JSONArray array= JSONArray.parseArray(JSON.toJSONString(list));
+//    };
+//
+//
+//    //JSONArray转List
+//
+//    JSONArray array = new JSONArray();
+//    List<EventColAttr> list = JSONObject.parseArray(array.toJSONString(), EventColAttr.class);
+//
+//}

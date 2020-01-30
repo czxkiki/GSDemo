@@ -7,11 +7,16 @@ import com.secneo.sdk.Helper;
 
 public class MApplication extends Application {
 
+    private DJIDemoApplication uxApplication;
     private DJIDemoApplication fpvDemoApplication;
     @Override
     protected void attachBaseContext(Context paramContext) {
         super.attachBaseContext(paramContext);
         Helper.install(MApplication.this);
+        if (uxApplication == null) {
+            uxApplication = new DJIDemoApplication();
+            uxApplication.setContext(this);
+        }
         if (fpvDemoApplication == null) {
             fpvDemoApplication = new DJIDemoApplication();
             fpvDemoApplication.setContext(this);
@@ -21,6 +26,7 @@ public class MApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        uxApplication.onCreate();
         fpvDemoApplication.onCreate();
     }
 

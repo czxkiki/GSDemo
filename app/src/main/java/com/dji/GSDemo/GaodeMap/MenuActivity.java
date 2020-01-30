@@ -53,8 +53,8 @@ public class MenuActivity extends AppCompatActivity {
                     startActivity(a);
                     break;
                 case 2:
-                    a = new Intent(MenuActivity.this,MainActivity.class);
-                    startActivity(a);
+                    b = new Intent(MenuActivity.this,UxActivity.class);
+                    startActivity(b);
                     break;
                 case 3:
                     Intent launchIntent1 = getContext().getPackageManager().getLaunchIntentForPackage("dji.go.v4");

@@ -7,14 +7,21 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
+import android.view.TextureView;
+import android.view.TextureView.SurfaceTextureListener;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.graphics.SurfaceTexture;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.amap.api.maps2d.AMap;
 import com.amap.api.maps2d.AMap.OnMapClickListener;
 import com.amap.api.maps2d.CameraUpdate;
@@ -25,6 +32,8 @@ import com.amap.api.maps2d.model.LatLng;
 import com.amap.api.maps2d.model.Marker;
 import com.amap.api.maps2d.model.MarkerOptions;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,9 +41,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
+import dji.common.camera.SystemState;
+
 import dji.common.error.DJIError;
 import dji.common.flightcontroller.FlightControllerState;
 import dji.common.mission.waypoint.Waypoint;
+import dji.common.mission.waypoint.WaypointAction;
 import dji.common.mission.waypoint.WaypointMission;
 import dji.common.mission.waypoint.WaypointMissionDownloadEvent;
 import dji.common.mission.waypoint.WaypointMissionExecutionEvent;
@@ -42,9 +54,13 @@ import dji.common.mission.waypoint.WaypointMissionFinishedAction;
 import dji.common.mission.waypoint.WaypointMissionFlightPathMode;
 import dji.common.mission.waypoint.WaypointMissionHeadingMode;
 import dji.common.mission.waypoint.WaypointMissionUploadEvent;
+import dji.common.product.Model;
 import dji.common.useraccount.UserAccountState;
 import dji.common.util.CommonCallbacks;
 import dji.sdk.base.BaseProduct;
+import dji.sdk.camera.Camera;
+import dji.sdk.camera.VideoFeeder;
+import dji.sdk.codec.DJICodecManager;
 import dji.sdk.flightcontroller.FlightController;
 import dji.sdk.mission.waypoint.WaypointMissionOperator;
 import dji.sdk.mission.waypoint.WaypointMissionOperatorListener;
@@ -54,19 +70,30 @@ import dji.sdk.useraccount.UserAccountManager;
 
 import com.dji.GSDemo.GaodeMap.utils.ToastUtils;
 
-public class MainActivity extends FragmentActivity implements View.OnClickListener, OnMapClickListener {
+import static dji.common.mission.waypoint.WaypointActionType.START_TAKE_PHOTO;
+
+
+public class MainActivity extends FragmentActivity implements View.OnClickListener,OnMapClickListener,SurfaceTextureListener {
 
     protected static final String TAG = "MainActivity";
+    protected VideoFeeder.VideoDataListener mReceivedVideoDataListener = null;
+    // Codec for video live view
+    protected DJICodecManager mCodecManager = null;
+    protected TextureView mVideoSurface = null;
+    private TextView recordingTime;
 
     private MapView mapView;
     private AMap aMap;
 
-    private Button locate, add, clear;
+    private Button locate, add, clear, Live;
     private Button config, upload, start, stop;
-
+    //Live
+    private String liveShowUrl = "rtmp://180.76.107.160:1935/live/123";
+    //保存list地址
+    private static final String URLSAVELIST = "http://180.76.107.160:8080/register/json/data";
     //设置增加按钮
     private Button set,Pause,Resume;
-    
+
     private boolean isAdd = false;
 
     private double droneLocationLat = 181, droneLocationLng = 181;
@@ -120,7 +147,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     }
 
     private void initUI() {
-
+        mVideoSurface = (TextureView)findViewById(R.id.picture);
+        recordingTime = (TextView) findViewById(R.id.timer);
         locate = (Button) findViewById(R.id.locate);
         add = (Button) findViewById(R.id.add);
         clear = (Button) findViewById(R.id.clear);
@@ -129,6 +157,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         start = (Button) findViewById(R.id.start);
         stop = (Button) findViewById(R.id.stop);
         set = (Button) findViewById(R.id.set);
+        Live = (Button) findViewById(R.id.Live);
 
         locate.setOnClickListener(this);
         add.setOnClickListener(this);
@@ -138,6 +167,11 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         start.setOnClickListener(this);
         stop.setOnClickListener(this);
         set.setOnClickListener(this);
+        Live.setOnClickListener(this);
+
+        if (null != mVideoSurface) {
+            mVideoSurface.setSurfaceTextureListener(this);
+        }
 
     }
 
@@ -170,8 +204,55 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         initUI();
         addListener();
 
-    }
+        mReceivedVideoDataListener = new VideoFeeder.VideoDataListener() {
 
+            @Override
+            public void onReceive(byte[] videoBuffer, int size) {
+                if (mCodecManager != null) {
+                    mCodecManager.sendDataToDecoder(videoBuffer, size);
+                }
+            }
+        };
+
+        Camera camera = DJIDemoApplication.getCameraInstance();
+
+        if (camera != null) {
+
+            camera.setSystemStateCallback(new SystemState.Callback() {
+                @Override
+                public void onUpdate(SystemState cameraSystemState) {
+                    if (null != cameraSystemState) {
+
+                        int recordTime = cameraSystemState.getCurrentVideoRecordingTimeInSeconds();
+                        int minutes = (recordTime % 3600) / 60;
+                        int seconds = recordTime % 60;
+
+                        final String timeString = String.format("%02d:%02d", minutes, seconds);
+                        final boolean isVideoRecording = cameraSystemState.isRecording();
+
+                        MainActivity.this.runOnUiThread(new Runnable() {
+
+                            @Override
+                            public void run() {
+
+                                recordingTime.setText(timeString);
+
+                                /*
+                                 * Update recordingTime TextView visibility and mRecordBtn's check state
+                                 */
+                                if (isVideoRecording) {
+                                    recordingTime.setVisibility(View.VISIBLE);
+                                } else {
+                                    recordingTime.setVisibility(View.INVISIBLE);
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+
+        }
+    }
     protected BroadcastReceiver mReceiver = new BroadcastReceiver() {
 
         @Override
@@ -380,6 +461,45 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             }
             case R.id.upload:{
                 uploadWayPointMission();
+            //list转json
+                JSONArray array= JSONArray.parseArray(JSON.toJSONString(waypointList));
+                //发送数据
+                OperateData operateData = new OperateData();
+                URL url = null;
+                try {
+                    url = new URL(URLSAVELIST);
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+
+                Handler handler = new Handler() {
+                    @Override
+                    public void handleMessage(Message msg) {
+                        super.handleMessage(msg);
+                        switch (msg.what) {
+                            case 0:
+                                Toast.makeText(MainActivity.this, "服务器连接失败", Toast.LENGTH_SHORT).show();
+                                break;
+                            case 1: Toast.makeText(MainActivity.this, "注册成功", Toast.LENGTH_SHORT).show();
+                                //注册成功跳转到登录页面
+                                startActivity( new Intent(MainActivity.this, MainActivity.class));
+                                MainActivity.this.finish();
+                                break;
+                            case 2:
+                                Toast.makeText(MainActivity.this, "用户已存在", Toast.LENGTH_SHORT).show();
+                                break;
+                            case 3:
+                                Log.e("input error", "url为空");
+                                break;
+                            case 4:Toast.makeText(MainActivity.this, "连接超时", Toast.LENGTH_SHORT).show();
+                                break;
+                            default:
+                        }
+                    }
+                };
+                String jsonString = array.toString();
+                operateData.sendData(jsonString, handler, url);
+                System.out.println(waypointList);
                 break;
             }
             case R.id.start:{
@@ -412,6 +532,11 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 stopWaypointMission();
                 break;
             }
+            case R.id.Live:{
+                startLiveShow();
+                break;
+            }
+
             case R.id.set: {
                 //TODO
                 LatLng pos = new LatLng(droneLocationLat, droneLocationLng);
@@ -421,6 +546,10 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     waypointList.add(mWaypoint);
                     waypointMissionBuilder.waypointList(waypointList).waypointCount(waypointList.size());
                     setResultToToast("AddPoint Success!");
+                    //打印
+                    for(int i = 0;i < waypointList.size();i++){
+                        System.out.println(waypointList.get(i));
+                    }
                 }else
                 {
                     waypointMissionBuilder = new WaypointMission.Builder();
@@ -604,10 +733,16 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         });
 
     }
+    //waypoint action
+    //todo
+    public void WaypointAction(){
+        WaypointAction cruiserAction = new WaypointAction(START_TAKE_PHOTO,1);
+    };
 
     private void startWaypointMission(){
 
         getWaypointMissionOperator().startMission(new CommonCallbacks.CompletionCallback() {
+
             @Override
             public void onResult(DJIError error) {
                 setResultToToast("Mission Start: " + (error == null ? "Successfully" : error.getDescription()));
@@ -631,4 +766,91 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         ToastUtils.setResultToToast(djiError == null ? "Action started!" : djiError.getDescription());
     }
 
+    private void initPreviewer() {
+
+        BaseProduct product = DJIDemoApplication.getProductInstance();
+
+        if (product == null || !product.isConnected()) {
+            showToast(getString(R.string.disconnected));
+        } else {
+            if (null != mVideoSurface) {
+                mVideoSurface.setSurfaceTextureListener(this);
+            }
+            if (!product.getModel().equals(Model.UNKNOWN_AIRCRAFT)) {
+                VideoFeeder.getInstance().getPrimaryVideoFeed().addVideoDataListener(mReceivedVideoDataListener);
+            }
+        }
+    }
+
+    private void uninitPreviewer() {
+        Camera camera = DJIDemoApplication.getCameraInstance();
+        if (camera != null){
+            // Reset the callback
+            VideoFeeder.getInstance().getPrimaryVideoFeed().addVideoDataListener(null);
+        }
+    }
+
+    @Override
+    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+        Log.e(TAG, "onSurfaceTextureAvailable");
+        if (mCodecManager == null) {
+            mCodecManager = new DJICodecManager(this, surface, width, height);
+        }
+    }
+
+    @Override
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+        Log.e(TAG, "onSurfaceTextureSizeChanged");
+    }
+
+    @Override
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+        Log.e(TAG,"onSurfaceTextureDestroyed");
+        if (mCodecManager != null) {
+            mCodecManager.cleanSurface();
+            mCodecManager = null;
+        }
+
+        return false;
+    }
+    @Override
+    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+    }
+    public void showToast(final String msg) {
+        runOnUiThread(new Runnable() {
+            public void run() {
+                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    //Live
+    private boolean isLiveStreamManagerOn() {
+        if (DJISDKManager.getInstance().getLiveStreamManager() == null) {
+            ToastUtils.setResultToToast("No live stream manager!");
+            return false;
+        }
+        return true;
+    }
+    public void startLiveShow() {
+//        ToastUtils.setResultToToast("Start Live Show");
+        if (!isLiveStreamManagerOn()) {
+            return;
+        }
+        if (DJISDKManager.getInstance().getLiveStreamManager().isStreaming()) {
+//            ToastUtils.setResultToToast("already started!");
+            return;
+        }
+        new Thread() {
+            @Override
+            public void run() {
+                DJISDKManager.getInstance().getLiveStreamManager().setLiveUrl(liveShowUrl);
+                int result = DJISDKManager.getInstance().getLiveStreamManager().startStream();
+                DJISDKManager.getInstance().getLiveStreamManager().setStartTime();
+//                ToastUtils.setResultToToast("startLive:" + result +
+//                        "\n isVideoStreamSpeedConfigurable:" + DJISDKManager.getInstance().getLiveStreamManager().isVideoStreamSpeedConfigurable() +
+//                        "\n isLiveAudioEnabled:" + DJISDKManager.getInstance().getLiveStreamManager().isLiveAudioEnabled());
+            }
+        }.start();
+    }
 }
