@@ -5,6 +5,8 @@ import android.content.Context;
 
 import com.secneo.sdk.Helper;
 
+import androidx.multidex.MultiDex;
+
 public class MApplication extends Application {
 
     private DJIDemoApplication uxApplication;
@@ -12,6 +14,7 @@ public class MApplication extends Application {
     @Override
     protected void attachBaseContext(Context paramContext) {
         super.attachBaseContext(paramContext);
+        MultiDex.install(this);
         Helper.install(MApplication.this);
         if (uxApplication == null) {
             uxApplication = new DJIDemoApplication();

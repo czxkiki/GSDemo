@@ -35,8 +35,11 @@ import com.amap.api.maps2d.model.MarkerOptions;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import androidx.annotation.Nullable;
@@ -67,13 +70,17 @@ import dji.sdk.mission.waypoint.WaypointMissionOperatorListener;
 import dji.sdk.products.Aircraft;
 import dji.sdk.sdkmanager.DJISDKManager;
 import dji.sdk.useraccount.UserAccountManager;
+import dji.ux.c.a;
 
 import com.dji.GSDemo.GaodeMap.utils.ToastUtils;
+
+import org.bouncycastle.LICENSE;
 
 import static dji.common.mission.waypoint.WaypointActionType.START_TAKE_PHOTO;
 
 
 public class MainActivity extends FragmentActivity implements View.OnClickListener,OnMapClickListener,SurfaceTextureListener {
+    LinkedHashMap<String, Object> jobMap=new LinkedHashMap<>();
 
     protected static final String TAG = "MainActivity";
     protected VideoFeeder.VideoDataListener mReceivedVideoDataListener = null;
@@ -84,15 +91,20 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
     private MapView mapView;
     private AMap aMap;
-
+    //定义List名称
+    public String Listname = null;
+    //定义任务加载按钮
+    private Button load;
     private Button locate, add, clear, Live;
     private Button config, upload, start, stop;
     //Live
     private String liveShowUrl = "rtmp://180.76.107.160:1935/live/123";
     //保存list地址
-    private static final String URLSAVELIST = "http://180.76.107.160:8080/register/json/data";
+    private static final String URLSAVELIST = "http://192.168.1.9:8080/register/json/data";
     //设置增加按钮
     private Button set,Pause,Resume;
+
+    public String URL1 = "http://192.168.1.11:8080/jobresluts/json/data";
 
     private boolean isAdd = false;
 
@@ -158,6 +170,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         stop = (Button) findViewById(R.id.stop);
         set = (Button) findViewById(R.id.set);
         Live = (Button) findViewById(R.id.Live);
+        load = (Button) findViewById(R.id.load);
 
         locate.setOnClickListener(this);
         add.setOnClickListener(this);
@@ -168,6 +181,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         stop.setOnClickListener(this);
         set.setOnClickListener(this);
         Live.setOnClickListener(this);
+        load.setOnClickListener(this);
 
         if (null != mVideoSurface) {
             mVideoSurface.setSurfaceTextureListener(this);
@@ -459,19 +473,13 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 showSettingDialog();
                 break;
             }
+            case R.id.load:{
+                jobString(v);
+                break;
+            }
             case R.id.upload:{
                 uploadWayPointMission();
-            //list转json
-                JSONArray array= JSONArray.parseArray(JSON.toJSONString(waypointList));
-                //发送数据
-                OperateData operateData = new OperateData();
-                URL url = null;
-                try {
-                    url = new URL(URLSAVELIST);
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                }
-
+                showJobSaveDialog();
                 Handler handler = new Handler() {
                     @Override
                     public void handleMessage(Message msg) {
@@ -482,11 +490,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                                 break;
                             case 1: Toast.makeText(MainActivity.this, "注册成功", Toast.LENGTH_SHORT).show();
                                 //注册成功跳转到登录页面
-                                startActivity( new Intent(MainActivity.this, MainActivity.class));
-                                MainActivity.this.finish();
-                                break;
-                            case 2:
-                                Toast.makeText(MainActivity.this, "用户已存在", Toast.LENGTH_SHORT).show();
+//                                startActivity( new Intent(MainActivity.this, MainActivity.class));
+//                                MainActivity.this.finish();
                                 break;
                             case 3:
                                 Log.e("input error", "url为空");
@@ -497,11 +502,37 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                         }
                     }
                 };
-                String jsonString = array.toString();
-                operateData.sendData(jsonString, handler, url);
-                System.out.println(waypointList);
+                //list转json
+//                JSONArray array= JSONArray.parseArray(JSON.toJSONString(waypointList));
+                //发送数据
+                System.out.print(waypointList);
+
+                URL url = null;
+                try {
+                    url = new URL(URLSAVELIST);
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+                OperateData operateData = new OperateData();
+                String[] data =new String[3];
+                for(int i = 0;i < waypointList.size();i++){
+
+                    data[0] = Listname ;
+                    data[1] = String.valueOf(waypointList.get(i));
+                    data[2] = String.valueOf(i);
+                    data[3] = String.valueOf(waypointList.size());
+
+//                    data[0] = "username:" + "\""+Listname +"\"";
+//                    data[1] = "password:" + "\""+waypointList.get(i) +"\"";
+//                    data[2] = "i:" + "\""+i+"\"";
+                    String jsonString = operateData.savestringTojson(data);
+                    operateData.sendData(jsonString, handler, url);
+                    System.out.println(jsonString);
+                }
+
                 break;
             }
+
             case R.id.start:{
                 startWaypointMission();
                 break;
@@ -583,6 +614,118 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     }
 
     private void showSettingDialog(){
+        LinearLayout wayPointSettings = (LinearLayout)getLayoutInflater().inflate(R.layout.dialog_waypointsetting, null);
+
+        final TextView wpAltitude_TV = (TextView) wayPointSettings.findViewById(R.id.altitude);
+        RadioGroup speed_RG = (RadioGroup) wayPointSettings.findViewById(R.id.speed);
+        RadioGroup actionAfterFinished_RG = (RadioGroup) wayPointSettings.findViewById(R.id.actionAfterFinished);
+        RadioGroup heading_RG = (RadioGroup) wayPointSettings.findViewById(R.id.heading);
+
+        speed_RG.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener(){
+
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                if (checkedId == R.id.lowSpeed){
+                    mSpeed = 3.0f;
+                } else if (checkedId == R.id.MidSpeed){
+                    mSpeed = 5.0f;
+                } else if (checkedId == R.id.HighSpeed){
+                    mSpeed = 10.0f;
+                }
+            }
+
+        });
+
+        actionAfterFinished_RG.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                Log.d(TAG, "Select finish action");
+                if (checkedId == R.id.finishNone){
+                    mFinishedAction = WaypointMissionFinishedAction.NO_ACTION;
+                } else if (checkedId == R.id.finishGoHome){
+                    mFinishedAction = WaypointMissionFinishedAction.GO_HOME;
+                } else if (checkedId == R.id.finishAutoLanding){
+                    mFinishedAction = WaypointMissionFinishedAction.AUTO_LAND;
+                } else if (checkedId == R.id.finishToFirst){
+                    mFinishedAction = WaypointMissionFinishedAction.GO_FIRST_WAYPOINT;
+                }
+            }
+        });
+
+        heading_RG.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                Log.d(TAG, "Select heading");
+
+                if (checkedId == R.id.headingNext) {
+                    mHeadingMode = WaypointMissionHeadingMode.AUTO;
+                } else if (checkedId == R.id.headingInitDirec) {
+                    mHeadingMode = WaypointMissionHeadingMode.USING_INITIAL_DIRECTION;
+                } else if (checkedId == R.id.headingRC) {
+                    mHeadingMode = WaypointMissionHeadingMode.CONTROL_BY_REMOTE_CONTROLLER;
+                } else if (checkedId == R.id.headingWP) {
+                    mHeadingMode = WaypointMissionHeadingMode.USING_WAYPOINT_HEADING;
+                }
+            }
+        });
+
+        new AlertDialog.Builder(this)
+                .setTitle("")
+                .setView(wayPointSettings)
+                .setPositiveButton("Finish",new DialogInterface.OnClickListener(){
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        String altitudeString = wpAltitude_TV.getText().toString();
+                        altitude = Integer.parseInt(nulltoIntegerDefalt(altitudeString));
+                        Log.e(TAG,"altitude "+altitude);
+                        Log.e(TAG,"speed "+mSpeed);
+                        Log.e(TAG, "mFinishedAction "+mFinishedAction);
+                        Log.e(TAG, "mHeadingMode "+mHeadingMode);
+                        configWayPointMission();
+                    }
+
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+
+                })
+                .create()
+                .show();
+    }
+
+    private String showJobSaveDialog(){
+        LinearLayout wayPointSave = (LinearLayout)getLayoutInflater().inflate(R.layout.dialog_waypointjobsave, null);
+
+        final TextView wpJobname_TV = (TextView) wayPointSave.findViewById(R.id.jobname);
+
+        new AlertDialog.Builder(this)
+                .setTitle("")
+                .setView(wayPointSave)
+                .setPositiveButton("Finish",new DialogInterface.OnClickListener(){
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        Listname = wpJobname_TV.getText().toString();
+                        Log.e(TAG,"任务名称： "+Listname);
+                        configWayPointMission();
+                    }
+
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+
+                })
+                .create()
+                .show();
+        return Listname;
+    }
+
+    private void showJobnameDialog(){
         LinearLayout wayPointSettings = (LinearLayout)getLayoutInflater().inflate(R.layout.dialog_waypointsetting, null);
 
         final TextView wpAltitude_TV = (TextView) wayPointSettings.findViewById(R.id.altitude);
@@ -824,6 +967,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         });
     }
 
+
     //Live
     private boolean isLiveStreamManagerOn() {
         if (DJISDKManager.getInstance().getLiveStreamManager() == null) {
@@ -852,5 +996,103 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 //                        "\n isLiveAudioEnabled:" + DJISDKManager.getInstance().getLiveStreamManager().isLiveAudioEnabled());
             }
         }.start();
+    }
+
+    //任务选择菜单
+    public void jobString(View v) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setIcon(android.R.drawable.alert_dark_frame);
+        builder.setTitle("请选择");
+//        final String[] items = new String[] { "貂蝉", "西施", "主管", "设计", "开发" };
+//        OperateData operateData = new OperateData();
+
+//        Handler handler = new Handler() {
+//            @Override
+//            public void handleMessage(Message msg) {
+//                super.handleMessage(msg);
+//                switch (msg.what) {
+//                    case 0:
+//                        Toast.makeText(MainActivity.this, "服务器连接失败", Toast.LENGTH_SHORT).show();
+//                        break;
+//                    case 1: Toast.makeText(MainActivity.this, "保存成功", Toast.LENGTH_SHORT).show();
+//                        //注册成功跳转到登录页面
+////                                            startActivity( new Intent(RegisterActivity.this, LoginActivity.class));
+////                                            RegisterActivity.this.finish();
+//                        break;
+//                    case 3:
+//                        Log.e("input error", "url为空");
+//                        break;
+//                    case 4:Toast.makeText(MainActivity.this, "连接超时", Toast.LENGTH_SHORT).show();
+//                        break;
+//                    default:
+//                }
+//            }
+//        };
+        //从String 转为net.url
+        URL url = null;
+        try {
+            url = new URL(URL1);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+//        List<Map<String, Object>> list = operateData.receiveJson(handler, url);
+        String[] items;
+
+        Handler handler=new Handler(){
+            public void handleMessage(Message msg) {
+                jobMap=((LinkedHashMap<String, Object>)msg.obj);
+                aa(jobMap);
+            }
+        };
+
+        JsonToHashMap j=new JsonToHashMap(url.toString(),handler);
+
+        items = aa(jobMap);
+        System.out.print(items);
+//        System.out.println("获取收据正常");
+        final boolean[] checkedItems = new boolean[] { false, false, false,
+                false, false };
+        builder.setMultiChoiceItems(items, checkedItems,new DialogInterface.OnMultiChoiceClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which,
+                                        boolean isChecked) {
+                        checkedItems[which] = isChecked;
+                    }
+                });
+        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+                String text = "请选择：";
+                for (int i = 0; i < items.length; i++) {
+                    if (checkedItems[i]) {
+                        text += items[i];
+                    }
+                }
+                Toast.makeText(MainActivity.this, text, Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+
+            }
+        });
+        builder.show();
+    }
+    Object jobs,id;
+    public String[] aa(LinkedHashMap<String, Object> map){
+        id=map.get("data");
+        List<String> myList = new ArrayList<String>();
+        LinkedHashMap<String,Object> temp=(LinkedHashMap<String, Object>) id;
+        Iterator ir=map.keySet().iterator();
+        while (ir.hasNext()){
+            Object key= ir.next();
+            myList.add(map.get(key).toString());
+        }
+        String[] items = myList.toArray(new String[myList.size()]);
+//        for (int i = 0; i < items.length; i++) {
+//            items = items[i].split("\\=\\.\\*\\?\\}");
+//        }
+        return items;
     }
 }

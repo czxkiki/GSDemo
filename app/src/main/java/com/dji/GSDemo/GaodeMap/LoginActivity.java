@@ -33,7 +33,8 @@ public class LoginActivity extends Activity {
     private SharedPreferences pref;
     private CheckBox rembemberPass;
     public static final String TAG = "LoginActivity";
-    private static final String URLLOGIN = "http://180.76.107.160:8080/login/json/data";
+//    private static final String URLLOGIN = "http://192.168.1.6:8080/login/json/data";
+    private static final String URLLOGIN = "http://192.168.1.11:8080/login/json/data";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,6 +102,7 @@ public class LoginActivity extends Activity {
                     };
                     OperateData operateData = new OperateData();
                     String jsonString = operateData.stringTojson(data);
+                    System.out.println(jsonString);
                     URL url = null;
                     try {
                         url = new URL(URLLOGIN);

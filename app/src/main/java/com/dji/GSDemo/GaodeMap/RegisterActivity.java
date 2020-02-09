@@ -45,7 +45,8 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
     private Spinner spinner;
     private List<String> dataList;
     private ArrayAdapter<String> adapter;
-    private static final String URLREGISTER = "http://180.76.107.160:8080/register/json/data";
+    private static final String URLREGISTER = "http://192.168.1.11:8080/register/json/data";
+//    private static final String URLREGISTER = "http://180.76.107.160:8080/register/json/data";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,13 +88,10 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
                                         case 0:
                                             Toast.makeText(RegisterActivity.this, "服务器连接失败", Toast.LENGTH_SHORT).show();
                                             break;
-                                        case 1: Toast.makeText(RegisterActivity.this, "注册成功", Toast.LENGTH_SHORT).show();
+                                        case 1: Toast.makeText(RegisterActivity.this, "保存成功", Toast.LENGTH_SHORT).show();
                                             //注册成功跳转到登录页面
-                                            startActivity( new Intent(RegisterActivity.this, LoginActivity.class));
-                                            RegisterActivity.this.finish();
-                                            break;
-                                        case 2:
-                                            Toast.makeText(RegisterActivity.this, "用户已存在", Toast.LENGTH_SHORT).show();
+//                                            startActivity( new Intent(RegisterActivity.this, LoginActivity.class));
+//                                            RegisterActivity.this.finish();
                                             break;
                                         case 3:
                                             Log.e("input error", "url为空");
