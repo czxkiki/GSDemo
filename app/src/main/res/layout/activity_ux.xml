@@ -16,7 +16,9 @@
 
     <dji.ux.workflow.CompassCalibratingWorkFlow
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_alignStart="@+id/linearLayout2" />
 
     <!-- Widgets in top status bar -->
     <LinearLayout
@@ -147,7 +149,8 @@
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_marginStart="12dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:id="@+id/linearLayout2">
 
         <dji.ux.widget.TakeOffWidget
             android:layout_width="40dp"

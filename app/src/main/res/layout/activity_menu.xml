@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:screenOrientation="portrait"
     tools:context="com.dji.GSDemo.GaodeMap.MenuActivity">
 
     <Button
@@ -12,45 +13,75 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="103dp"
+        android:layout_marginTop="100dp"
         android:text="Wey-Point" />
+
+    <TextView
+        android:id="@+id/text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/button7"
+        android:layout_centerHorizontal="true"
+        android:text="Hello, I am a TextView" />
 
     <Button
         android:id="@+id/button8"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignEnd="@+id/button7"
-        android:layout_alignRight="@+id/button7"
         android:layout_below="@+id/button7"
-        android:layout_marginTop="27dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
         android:text="UX-Mode" />
-
+    <TextView
+        android:id="@+id/text1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/button8"
+        android:layout_centerHorizontal="true"
+        android:text="Hello, I am a TextView" />
     <Button
         android:id="@+id/button9"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/button8"
-        android:layout_alignStart="@+id/button8"
+        android:layout_alignEnd="@+id/button7"
         android:layout_centerVertical="true"
         android:text="startGo4" />
-
+    <TextView
+        android:id="@+id/text2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/button9"
+        android:layout_centerHorizontal="true"
+        android:text="Hello, I am a TextView" />
     <Button
         android:id="@+id/button10"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignEnd="@+id/button9"
-        android:layout_alignRight="@+id/button9"
+        android:layout_alignStart="@+id/button8"
         android:layout_below="@+id/button9"
-        android:layout_marginTop="34dp"
+        android:layout_marginTop="30dp"
+        android:layout_centerVertical="true"
         android:text="startGo" />
-
+    <TextView
+        android:id="@+id/text3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/button10"
+        android:layout_centerHorizontal="true"
+        android:text="Hello, I am a TextView" />
     <Button
         android:id="@+id/button11"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignEnd="@+id/button10"
-        android:layout_alignRight="@+id/button10"
         android:layout_below="@+id/button10"
-        android:layout_marginTop="38dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="36dp"
         android:text="自主巡航模式(待开发)" />
+    <TextView
+        android:id="@+id/text4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/button11"
+        android:layout_centerHorizontal="true"
+        android:text="Hello, I am a TextView" />
 </RelativeLayout>

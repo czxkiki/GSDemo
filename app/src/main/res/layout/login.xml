@@ -3,20 +3,31 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:stretchColumns="1">
 
+    <ImageView
+        android:id="@+id/iv_login_logo"
+        android:layout_width="wrap_content"
+        android:layout_height="300dp"
+        android:layout_gravity="center_horizontal"
+        android:paddingTop="60dp"
+        android:scaleType="centerInside"
+        app:srcCompat="@mipmap/logo" />
     <TableRow>
 
         <TextView
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:layout_margin="12dp"
-            android:text="  User:" />
+            android:text="用户名:" />
 
         <EditText
             android:id="@+id/user"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
+            android:layout_marginRight="80dp"
             android:hint="Input your username"/>
     </TableRow>
 
@@ -26,12 +37,14 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:layout_margin="12dp"
-            android:text="  Password:" />
+            android:text="密码:" />
 
         <EditText
             android:id="@+id/password"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
+            android:layout_marginRight="80dp"
+
             android:hint="Input your password"/>
     </TableRow>
 
@@ -40,7 +53,14 @@
     <TableRow android:layout_margin="12dp">
         <CheckBox
             android:id="@+id/remember"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:button="@drawable/ic_selector_checkbox"
+            android:checked="true"
+            android:contentDescription="@null"
+            android:textColor="@color/text_secondary_color"
+            android:textSize="@dimen/font_12"
+            tools:visibility="visible"
             />
 
         <TextView
@@ -48,32 +68,38 @@
             android:text="Remeber Me" />
     </TableRow>
 
-    <LinearLayout android:layout_marginTop="12dp">
 
+    <Button
+        android:id="@+id/register"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginLeft="24dp"
+        android:layout_marginRight="24dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/bg_login_submit"
+        android:elevation="0dp"
+        android:outlineProvider="none"
+        android:text="Register"
+        android:textColor="@color/white"
+        android:textSize="@dimen/font_18"
+        tools:targetApi="lollipop" />
 
-        <Button
-            android:id="@+id/register"
-            android:layout_width="77dp"
-            android:layout_height="wrap_content"
-            android:layout_span="3"
-            android:layout_weight="1"
-            android:background="#00CED1"
-            android:layout_marginLeft="25dp"
-            android:layout_marginRight="20dp"
-            android:text="Register" />
+    <Button
+        android:id="@+id/login"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginLeft="24dp"
+        android:layout_marginRight="24dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_login_submit"
+        android:elevation="0dp"
+        android:outlineProvider="none"
+        android:text="Login"
+        android:textColor="@color/white"
+        android:textSize="@dimen/font_18"
+        android:translationZ="0dp"
+        tools:targetApi="lollipop" />
 
-        <Button
-            android:id="@+id/login"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:layout_span="3"
-            android:layout_weight="1"
-            android:background="#00CED1"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="25dp"
-            android:text="Login" />
-
-    </LinearLayout>
 
 
 </TableLayout>

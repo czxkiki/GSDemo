@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -13,6 +14,8 @@ import android.util.Log;
 import android.view.TextureView;
 import android.view.TextureView.SurfaceTextureListener;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
@@ -32,9 +35,13 @@ import com.amap.api.maps2d.model.LatLng;
 import com.amap.api.maps2d.model.Marker;
 import com.amap.api.maps2d.model.MarkerOptions;
 
+import java.lang.reflect.Array;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -48,6 +55,7 @@ import dji.common.camera.SystemState;
 
 import dji.common.error.DJIError;
 import dji.common.flightcontroller.FlightControllerState;
+import dji.common.flightcontroller.LocationCoordinate3D;
 import dji.common.mission.waypoint.Waypoint;
 import dji.common.mission.waypoint.WaypointAction;
 import dji.common.mission.waypoint.WaypointMission;
@@ -94,17 +102,19 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     //定义List名称
     public String Listname = null;
     //定义任务加载按钮
-    private Button load;
+    private Button load, save;
     private Button locate, add, clear, Live;
     private Button config, upload, start, stop;
     //Live
     private String liveShowUrl = "rtmp://180.76.107.160:1935/live/123";
     //保存list地址
-    private static final String URLSAVELIST = "http://192.168.1.9:8080/register/json/data";
+    private static final String URLSAVELIST = "http://192.168.1.6:8080/register/json/data";
     //设置增加按钮
     private Button set,Pause,Resume;
-
-    public String URL1 = "http://192.168.1.11:8080/jobresluts/json/data";
+    //获取jobname
+    public String URL1 = "http://192.168.1.6:8080/jobresluts/json/data";
+    //获取joblist
+    public String URL2 = "http://192.168.1.6:8080/Waypointlist";
 
     private boolean isAdd = false;
 
@@ -171,6 +181,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         set = (Button) findViewById(R.id.set);
         Live = (Button) findViewById(R.id.Live);
         load = (Button) findViewById(R.id.load);
+        save = (Button) findViewById(R.id.save);
 
         locate.setOnClickListener(this);
         add.setOnClickListener(this);
@@ -182,6 +193,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         set.setOnClickListener(this);
         Live.setOnClickListener(this);
         load.setOnClickListener(this);
+        save.setOnClickListener(this);
 
         if (null != mVideoSurface) {
             mVideoSurface.setSurfaceTextureListener(this);
@@ -206,11 +218,14 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+        //转180度
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(DJIDemoApplication.FLAG_CONNECTION_CHANGE);
         registerReceiver(mReceiver, filter);
-
+        //全屏 去掉标题栏
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,  WindowManager.LayoutParams.FLAG_FULLSCREEN);
         mapView = (MapView) findViewById(R.id.map);
         mapView.onCreate(savedInstanceState);
 
@@ -471,64 +486,24 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             }
             case R.id.config:{
                 showSettingDialog();
+                for(int i = 0;i < waypointList.size();i++){
+                    System.out.println(waypointList.get(i)+"###########");
+                }
                 break;
             }
             case R.id.load:{
                 jobString(v);
                 break;
             }
+            case R.id.save: {
+                showJobSaveDialog();
+
+
+
+                break;
+            }
             case R.id.upload:{
                 uploadWayPointMission();
-                showJobSaveDialog();
-                Handler handler = new Handler() {
-                    @Override
-                    public void handleMessage(Message msg) {
-                        super.handleMessage(msg);
-                        switch (msg.what) {
-                            case 0:
-                                Toast.makeText(MainActivity.this, "服务器连接失败", Toast.LENGTH_SHORT).show();
-                                break;
-                            case 1: Toast.makeText(MainActivity.this, "注册成功", Toast.LENGTH_SHORT).show();
-                                //注册成功跳转到登录页面
-//                                startActivity( new Intent(MainActivity.this, MainActivity.class));
-//                                MainActivity.this.finish();
-                                break;
-                            case 3:
-                                Log.e("input error", "url为空");
-                                break;
-                            case 4:Toast.makeText(MainActivity.this, "连接超时", Toast.LENGTH_SHORT).show();
-                                break;
-                            default:
-                        }
-                    }
-                };
-                //list转json
-//                JSONArray array= JSONArray.parseArray(JSON.toJSONString(waypointList));
-                //发送数据
-                System.out.print(waypointList);
-
-                URL url = null;
-                try {
-                    url = new URL(URLSAVELIST);
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                }
-                OperateData operateData = new OperateData();
-                String[] data =new String[3];
-                for(int i = 0;i < waypointList.size();i++){
-
-                    data[0] = Listname ;
-                    data[1] = String.valueOf(waypointList.get(i));
-                    data[2] = String.valueOf(i);
-                    data[3] = String.valueOf(waypointList.size());
-
-//                    data[0] = "username:" + "\""+Listname +"\"";
-//                    data[1] = "password:" + "\""+waypointList.get(i) +"\"";
-//                    data[2] = "i:" + "\""+i+"\"";
-                    String jsonString = operateData.savestringTojson(data);
-                    operateData.sendData(jsonString, handler, url);
-                    System.out.println(jsonString);
-                }
 
                 break;
             }
@@ -571,12 +546,15 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             case R.id.set: {
                 //TODO
                 LatLng pos = new LatLng(droneLocationLat, droneLocationLng);
+                //取相对高度A float value of the relative altitude of the aircraft relative to take off location.
+                LocationCoordinate3D alt = new LocationCoordinate3D(pos.latitude, pos.longitude, altitude);
+                altitude = alt.getAltitude();
                 Waypoint mWaypoint = new Waypoint(pos.latitude, pos.longitude, altitude);
                 //Add Waypoints to Waypoint arraylist;
                 if (waypointMissionBuilder != null) {
                     waypointList.add(mWaypoint);
                     waypointMissionBuilder.waypointList(waypointList).waypointCount(waypointList.size());
-                    setResultToToast("AddPoint Success!");
+                    setResultToToast("AddPoint Success!"+altitude);
                     //打印
                     for(int i = 0;i < waypointList.size();i++){
                         System.out.println(waypointList.get(i));
@@ -587,6 +565,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     waypointList.add(mWaypoint);
                     setResultToToast("NewMissson Success!");
                     waypointMissionBuilder.waypointList(waypointList).waypointCount(waypointList.size());
+                    setResultToToast("AddPoint Success!");
                 }
                 break;
             }
@@ -722,7 +701,57 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 })
                 .create()
                 .show();
+        Handler handler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                switch (msg.what) {
+                    case 0:
+                        Toast.makeText(MainActivity.this, "服务器连接失败", Toast.LENGTH_SHORT).show();
+                        break;
+                    case 1: Toast.makeText(MainActivity.this, "注册成功", Toast.LENGTH_SHORT).show();
+                        //注册成功跳转到登录页面
+//                                startActivity( new Intent(MainActivity.this, MainActivity.class));
+//                                MainActivity.this.finish();
+                        break;
+                    case 3:
+                        Log.e("input error", "url为空");
+                        break;
+                    case 4:Toast.makeText(MainActivity.this, "连接超时", Toast.LENGTH_SHORT).show();
+                        break;
+                    default:
+                }
+            }
+        };
+        //list转json
+//                JSONArray array= JSONArray.parseArray(JSON.toJSONString(waypointList));
+        //发送数据
+        System.out.print(waypointList);
+
+        URL url = null;
+        try {
+            url = new URL(URLSAVELIST);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        OperateData operateData = new OperateData();
+        String[] data =new String[4];
+        for(int i = 0;i < waypointList.size();i++){
+
+            data[0] = Listname ;
+            data[1] = String.valueOf(waypointList.get(i));
+            data[2] = String.valueOf(i);
+            data[3] = String.valueOf(waypointList.size());
+
+//                    data[0] = "username:" + "\""+Listname +"\"";
+//                    data[1] = "password:" + "\""+waypointList.get(i) +"\"";
+//                    data[2] = "i:" + "\""+i+"\"";
+            String jsonString = operateData.savestringTojson(data);
+            operateData.sendData(jsonString, handler, url);
+            System.out.println(jsonString);
+        }
         return Listname;
+
     }
 
     private void showJobnameDialog(){
@@ -1003,31 +1032,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setIcon(android.R.drawable.alert_dark_frame);
         builder.setTitle("请选择");
-//        final String[] items = new String[] { "貂蝉", "西施", "主管", "设计", "开发" };
-//        OperateData operateData = new OperateData();
 
-//        Handler handler = new Handler() {
-//            @Override
-//            public void handleMessage(Message msg) {
-//                super.handleMessage(msg);
-//                switch (msg.what) {
-//                    case 0:
-//                        Toast.makeText(MainActivity.this, "服务器连接失败", Toast.LENGTH_SHORT).show();
-//                        break;
-//                    case 1: Toast.makeText(MainActivity.this, "保存成功", Toast.LENGTH_SHORT).show();
-//                        //注册成功跳转到登录页面
-////                                            startActivity( new Intent(RegisterActivity.this, LoginActivity.class));
-////                                            RegisterActivity.this.finish();
-//                        break;
-//                    case 3:
-//                        Log.e("input error", "url为空");
-//                        break;
-//                    case 4:Toast.makeText(MainActivity.this, "连接超时", Toast.LENGTH_SHORT).show();
-//                        break;
-//                    default:
-//                }
-//            }
-//        };
         //从String 转为net.url
         URL url = null;
         try {
@@ -1050,49 +1055,85 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         items = aa(jobMap);
         System.out.print(items);
-//        System.out.println("获取收据正常");
-        final boolean[] checkedItems = new boolean[] { false, false, false,
-                false, false };
-        builder.setMultiChoiceItems(items, checkedItems,new DialogInterface.OnMultiChoiceClickListener() {
 
-                    @Override
-                    public void onClick(DialogInterface dialog, int which,
-                                        boolean isChecked) {
-                        checkedItems[which] = isChecked;
-                    }
-                });
-        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-
+        builder.setSingleChoiceItems(items, -1, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-
-                String text = "请选择：";
-                for (int i = 0; i < items.length; i++) {
-                    if (checkedItems[i]) {
-                        text += items[i];
-                    }
+                Toast.makeText(MainActivity.this, "选择的是：" + items[which], Toast.LENGTH_SHORT).show();
+                System.out.println(items[which] + "choice");
+                //从后台取到该list数据并放入Waylist
+                //todo
+                URL url = null;
+                try {
+                    url = new URL(URL2);
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
                 }
-                Toast.makeText(MainActivity.this, text, Toast.LENGTH_SHORT).show();
-                dialog.dismiss();
 
-            }
-        });
+//        List<Map<String, Object>> list = operateData.receiveJson(handler, url);
+                String temp = items[which];
+
+                Handler handler=new Handler(){
+                    public void handleMessage(Message msg) {
+                        jobMap=((LinkedHashMap<String, Object>)msg.obj);
+                        aa(jobMap);
+                    }
+                };
+
+                JsonToHashMap j=new JsonToHashMap(url.toString(),handler,temp);
+                String[] Waypointlisttemp = aa(jobMap);
+                List<String> newd = Arrays.asList(Waypointlisttemp);
+                //todo
+                System.out.print(waypointList);
+
+
+
+
+
+
+
+
+                dialog.dismiss();
+}
+ });
         builder.show();
     }
     Object jobs,id;
     public String[] aa(LinkedHashMap<String, Object> map){
         id=map.get("data");
-        List<String> myList = new ArrayList<String>();
+        List<String> myList = new ArrayList<>();
         LinkedHashMap<String,Object> temp=(LinkedHashMap<String, Object>) id;
         Iterator ir=map.keySet().iterator();
         while (ir.hasNext()){
             Object key= ir.next();
             myList.add(map.get(key).toString());
         }
-        String[] items = myList.toArray(new String[myList.size()]);
+
+        String[] tempitems = myList.toArray(new String[myList.size()]);
+        String tempString;
+        tempString = Arrays.toString(tempitems);
+        //截取
+        List<String> ret = new ArrayList<>();
+        int ch = 0, start, end;
+        while (ch < tempString.length()) {
+            // 索引出现负数，说明在源字符串指定位置之后已经没有 '=' 或者 '}'
+            start = tempString.indexOf("=", ch);
+            end = tempString.indexOf("}", ch);
+            // substring 内部索引禁止出现负数
+            if (start == -1 || end == -1) {
+                break;
+            }
+            String items = tempString.substring(start + 1, end);
+            //保存上一次截取时的索引
+            ch = end + 1;
+            ret.add(items);
+        }
+        String[] items = ret.toArray(new String[ret.size()]);
+//        System.out.println(Arrays.toString(items)+"++++++++");
 //        for (int i = 0; i < items.length; i++) {
-//            items = items[i].split("\\=\\.\\*\\?\\}");
+//            items = items[i].split("\\=(.*?)\\}",1);
 //        }
+//        System.out.println(Arrays.toString(items)+"-------");
         return items;
     }
 }

@@ -70,7 +70,22 @@ public class OperateData {
         String jsonString = String.valueOf(jsonObject);
         return jsonString;
     }
+    //get waypointlist
+    public String namestringTojson(String stringArray[]) {
+        JSONObject jsonObject = null;
+        if (stringArray == null) {
+            return "";
+        }
+        jsonObject = new JSONObject();
+        try {
+            jsonObject.put("listname", stringArray[0]);
 
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        String jsonString = String.valueOf(jsonObject);
+        return jsonString;
+    }
     //save
     public String savestringTojson(String stringArray[]) {
         JSONObject jsonObject = null;

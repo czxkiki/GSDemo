@@ -1,8 +1,10 @@
 package com.dji.GSDemo.GaodeMap;
 
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 //import android.support.v7.app.AppCompatActivity;
@@ -20,7 +22,9 @@ public class MenuActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
-
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        //全屏 去掉标题栏
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,  WindowManager.LayoutParams.FLAG_FULLSCREEN);
         Button bt1 = (Button)findViewById(R.id.button7);
         Button bt2 = (Button)findViewById(R.id.button8);
         Button bt3 = (Button)findViewById(R.id.button9);
