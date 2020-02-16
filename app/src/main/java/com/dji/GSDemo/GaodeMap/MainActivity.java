@@ -36,6 +36,7 @@ import com.amap.api.maps2d.model.Marker;
 import com.amap.api.maps2d.model.MarkerOptions;
 
 import java.lang.reflect.Array;
+import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -46,6 +47,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -108,13 +111,15 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     //Live
     private String liveShowUrl = "rtmp://180.76.107.160:1935/live/123";
     //保存list地址
-    private static final String URLSAVELIST = "http://192.168.1.6:8080/register/json/data";
+    private static final String URLSAVELIST = "http://180.76.107.160:8080/register/json/data";
     //设置增加按钮
     private Button set,Pause,Resume;
     //获取jobname
-    public String URL1 = "http://192.168.1.6:8080/jobresluts/json/data";
+    public String URL1 = "http://180.76.107.160:8080/jobresluts/json/data";
     //获取joblist
-    public String URL2 = "http://192.168.1.6:8080/Waypointlist";
+    public String URL2 = "http://180.76.107.160:8080/Waypointlist";
+    //joblist
+    public String temp1;
 
     private boolean isAdd = false;
 
@@ -497,9 +502,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             }
             case R.id.save: {
                 showJobSaveDialog();
-
-
-
                 break;
             }
             case R.id.upload:{
@@ -546,15 +548,21 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             case R.id.set: {
                 //TODO
                 LatLng pos = new LatLng(droneLocationLat, droneLocationLng);
+                //暂时取小数点后五位
+                BigDecimal a = new BigDecimal(pos.latitude);
+                double a1 = a.setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue();
+                BigDecimal b = new BigDecimal(pos.latitude);
+                double b1 = b.setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue();
+
                 //取相对高度A float value of the relative altitude of the aircraft relative to take off location.
-                LocationCoordinate3D alt = new LocationCoordinate3D(pos.latitude, pos.longitude, altitude);
+                LocationCoordinate3D alt = new LocationCoordinate3D(a1, b1, altitude);
                 altitude = alt.getAltitude();
                 Waypoint mWaypoint = new Waypoint(pos.latitude, pos.longitude, altitude);
                 //Add Waypoints to Waypoint arraylist;
                 if (waypointMissionBuilder != null) {
                     waypointList.add(mWaypoint);
                     waypointMissionBuilder.waypointList(waypointList).waypointCount(waypointList.size());
-                    setResultToToast("AddPoint Success!"+altitude);
+                    setResultToToast("AddPoint Success!"+pos.latitude+altitude);
                     //打印
                     for(int i = 0;i < waypointList.size();i++){
                         System.out.println(waypointList.get(i));
@@ -682,14 +690,14 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         final TextView wpJobname_TV = (TextView) wayPointSave.findViewById(R.id.jobname);
 
         new AlertDialog.Builder(this)
-                .setTitle("")
+                .setTitle("任务名称：")
                 .setView(wayPointSave)
                 .setPositiveButton("Finish",new DialogInterface.OnClickListener(){
                     public void onClick(DialogInterface dialog, int id) {
 
                         Listname = wpJobname_TV.getText().toString();
                         Log.e(TAG,"任务名称： "+Listname);
-                        configWayPointMission();
+//                        configWayPointMission();
                     }
 
                 })
@@ -709,7 +717,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     case 0:
                         Toast.makeText(MainActivity.this, "服务器连接失败", Toast.LENGTH_SHORT).show();
                         break;
-                    case 1: Toast.makeText(MainActivity.this, "注册成功", Toast.LENGTH_SHORT).show();
+                    case 1: Toast.makeText(MainActivity.this, "保存成功！", Toast.LENGTH_SHORT).show();
                         //注册成功跳转到登录页面
 //                                startActivity( new Intent(MainActivity.this, MainActivity.class));
 //                                MainActivity.this.finish();
@@ -1073,28 +1081,62 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 //        List<Map<String, Object>> list = operateData.receiveJson(handler, url);
                 String temp = items[which];
 
+
                 Handler handler=new Handler(){
                     public void handleMessage(Message msg) {
-                        jobMap=((LinkedHashMap<String, Object>)msg.obj);
-                        aa(jobMap);
+                        String temp1 = msg.obj.toString();
+                        System.out.println(temp1+"后台已经获取！"+ temp1.length());
+                        StringtoJobList(temp1);
                     }
                 };
-
                 JsonToHashMap j=new JsonToHashMap(url.toString(),handler,temp);
-                String[] Waypointlisttemp = aa(jobMap);
-                List<String> newd = Arrays.asList(Waypointlisttemp);
-                //todo
-                System.out.print(waypointList);
 
-
-
-
-
-
+//                Timer timer = new Timer();
+//                timer.schedule(new TimerTask() {
+//                    public void run() {
+//
+//                        System.out.println("延迟5s");
+//                        //延迟特定时间后执行该语句（public void run()的花括号里的语句）
+//                        int a = temp1.length();
+//                        System.out.println(a+"a大小");
+//                        int i = (int) Math.floor((temp1.length())/76);
+//                        System.out.println(i+"大小");
+//                        ArrayList<String> tempjoblist = new ArrayList();
+//                        for (int k = 0; k <i ; k++) {
+//                            tempjoblist.add(temp1.substring(44+k*77,53+k*77));
+//                            tempjoblist.add(temp1.substring(65+k*77,74+k*77));
+//                        }
+////                List<String> newd = Arrays.asList(Waypointlisttemp);
+//                        System.out.println(tempjoblist+"打印list!");
+//                        System.out.println(tempjoblist.size()+"K");
+//                        for (int k = 0; k < tempjoblist.size(); k-=2) {
+//
+//                            Waypoint mWaypoint = new Waypoint(Double.parseDouble(tempjoblist.get(k-1)),Double.parseDouble(tempjoblist.get(k-2)), altitude);
+//                            //Add Waypoints to Waypoint arraylist;
+//                            if (waypointMissionBuilder != null) {
+//                                waypointList.add(mWaypoint);
+//                                waypointMissionBuilder.waypointList(waypointList).waypointCount(waypointList.size());
+//                                setResultToToast("AddPoint Success!");
+//                                //打印
+//                                for(int l = 0;l < waypointList.size();l++){
+//                                    System.out.println(waypointList.get(l)+"加载List！！");
+//                                }
+//                            }else
+//                            {
+//                                waypointMissionBuilder = new WaypointMission.Builder();
+//                                waypointList.add(mWaypoint);
+//                                setResultToToast("NewMissson Success!");
+//                                waypointMissionBuilder.waypointList(waypointList).waypointCount(waypointList.size());
+//                                setResultToToast("AddPoint Success!");
+//                            }
+//                            break;
+//
+//                        }
+//                    } }, 10000);
 
 
                 dialog.dismiss();
-}
+            }
  });
         builder.show();
     }
@@ -1135,5 +1177,41 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 //        }
 //        System.out.println(Arrays.toString(items)+"-------");
         return items;
+    }
+    public void StringtoJobList(String temp1){
+        int a = temp1.length();
+        System.out.println(a+"a大小");
+        int i = (int) Math.floor((temp1.length())/76);
+        System.out.println(i+"大小");
+        ArrayList<String> tempjoblist = new ArrayList();
+        for (int k = 0; k < i ; k++) {
+            tempjoblist.add(temp1.substring(44+k*78,52+k*78));
+            tempjoblist.add(temp1.substring(65+k*78,74+k*78));
+        }
+//                List<String> newd = Arrays.asList(Waypointlisttemp);
+        System.out.println(tempjoblist+"打印list!");
+        System.out.println(tempjoblist.size()+"list大小");
+        for (int k = 0; k < i*2; k+=2) {
+            Waypoint mWaypoint = new Waypoint(Double.parseDouble(tempjoblist.get(k)), Double.parseDouble(tempjoblist.get(k+1)), altitude);
+            //Add Waypoints to Waypoint arraylist;
+            if (waypointMissionBuilder != null) {
+                waypointList.add(mWaypoint);
+                waypointMissionBuilder.waypointList(waypointList).waypointCount(waypointList.size());
+                setResultToToast("AddPoint Success!");
+                //打印
+                for (int l = 0; l < waypointList.size(); l++) {
+                    System.out.println(waypointList.get(l) + "加载List！！");
+                }
+            } else {
+                waypointMissionBuilder = new WaypointMission.Builder();
+                waypointList.add(mWaypoint);
+                setResultToToast("NewMissson Success!");
+                waypointMissionBuilder.waypointList(waypointList).waypointCount(waypointList.size());
+                setResultToToast("AddPoint Success!");
+                for (int l = 0; l < waypointList.size(); l++) {
+                    System.out.println(waypointList.get(l) + "加载List！！");
+                }
+            }
+        }
     }
 }

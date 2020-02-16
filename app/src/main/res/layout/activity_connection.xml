@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -22,34 +23,55 @@
         android:id="@+id/text_product_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/btn_open"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="270dp"
+        android:layout_marginBottom="102dp"
+        android:gravity="center"
         android:text="@string/product_information"
         android:textColor="@android:color/black"
         android:textSize="20dp"
-        android:gravity="center"
-        android:textStyle="bold"
-        />
+        android:textStyle="bold" />
 
     <Button
         android:id="@+id/btn_open"
         android:layout_width="150dp"
         android:layout_height="55dp"
+        android:layout_alignBottom="@+id/textView2"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="350dp"
+        android:layout_marginBottom="62dp"
         android:background="@drawable/round_btn"
         android:text="Open"
         android:textColor="@color/colorWhite"
-        android:textSize="20dp"
-        />
+        android:textSize="20dp" />
 
     <TextView
+        android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="430dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignStart="@+id/btn_open"
+        android:layout_marginBottom="60dp"
         android:text="@string/sdk_version"
-        android:textSize="15dp"
-        android:id="@+id/textView2" />
+        android:textSize="15dp" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="100dp"
+        android:layout_height="89dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="66dp"
+        android:src="@mipmap/logo" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_below="@+id/imageView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="58dp"
+        android:text="智能线路巡检系统"
+        android:textSize="35dp"
+        android:textStyle="bold" />
 
 </RelativeLayout>

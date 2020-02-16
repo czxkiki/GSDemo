@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:stretchColumns="1">
 
@@ -44,7 +43,6 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:layout_marginRight="80dp"
-
             android:hint="Input your password"/>
     </TableRow>
 
@@ -73,14 +71,14 @@
         android:id="@+id/register"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:layout_marginLeft="24dp"
-        android:layout_marginRight="24dp"
+        android:layout_marginLeft="80dp"
+        android:layout_marginRight="80dp"
         android:layout_marginTop="20dp"
-        android:background="@drawable/bg_login_submit"
+        android:background="@drawable/bg_login_register"
         android:elevation="0dp"
         android:outlineProvider="none"
         android:text="Register"
-        android:textColor="@color/white"
+        android:textColor="@color/black"
         android:textSize="@dimen/font_18"
         tools:targetApi="lollipop" />
 
@@ -88,8 +86,8 @@
         android:id="@+id/login"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:layout_marginLeft="24dp"
-        android:layout_marginRight="24dp"
+        android:layout_marginLeft="80dp"
+        android:layout_marginRight="80dp"
         android:layout_marginTop="16dp"
         android:background="@drawable/bg_login_submit"
         android:elevation="0dp"

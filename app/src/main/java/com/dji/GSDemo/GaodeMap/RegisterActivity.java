@@ -45,7 +45,7 @@ public class RegisterActivity extends Activity implements View.OnClickListener {
     private Spinner spinner;
     private List<String> dataList;
     private ArrayAdapter<String> adapter;
-    private static final String URLREGISTER = "http://192.168.1.6:8080/register/json/data";
+    private static final String URLREGISTER = "http://180.76.107.160:8080/register/json/data";
 //    private static final String URLREGISTER = "http://180.76.107.160:8080/register/json/data";
 
     @Override

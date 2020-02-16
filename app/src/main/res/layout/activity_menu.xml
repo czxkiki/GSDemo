@@ -18,41 +18,44 @@
 
     <TextView
         android:id="@+id/text"
-        android:layout_width="wrap_content"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/button7"
         android:layout_centerHorizontal="true"
-        android:text="Hello, I am a TextView" />
+        android:text="        该模块实现了线路巡检任务的保存、重载功能。巡检隐患一键上传（开发中）" />
 
     <Button
         android:id="@+id/button8"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/button7"
+        android:layout_below="@+id/text"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="14dp"
         android:text="UX-Mode" />
     <TextView
         android:id="@+id/text1"
-        android:layout_width="wrap_content"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/button8"
         android:layout_centerHorizontal="true"
-        android:text="Hello, I am a TextView" />
+        android:text="        大疆提供的原生界面，后期将与现有功能进行融合" />
+
     <Button
         android:id="@+id/button9"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignEnd="@+id/button7"
-        android:layout_centerVertical="true"
+        android:layout_alignEnd="@+id/button8"
+        android:layout_below="@+id/text1"
+        android:layout_marginTop="21dp"
+        android:layout_centerHorizontal="true"
         android:text="startGo4" />
     <TextView
         android:id="@+id/text2"
-        android:layout_width="wrap_content"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/button9"
         android:layout_centerHorizontal="true"
-        android:text="Hello, I am a TextView" />
+        android:text="        跳转至大疆Go4，可完成参数设置。" />
     <Button
         android:id="@+id/button10"
         android:layout_width="wrap_content"
@@ -60,15 +63,15 @@
         android:layout_alignStart="@+id/button8"
         android:layout_below="@+id/button9"
         android:layout_marginTop="30dp"
-        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
         android:text="startGo" />
     <TextView
         android:id="@+id/text3"
-        android:layout_width="wrap_content"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/button10"
         android:layout_centerHorizontal="true"
-        android:text="Hello, I am a TextView" />
+        android:text="        跳转至大疆startGo，可完成参数设置。" />
     <Button
         android:id="@+id/button11"
         android:layout_width="wrap_content"
@@ -76,12 +79,12 @@
         android:layout_below="@+id/button10"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="36dp"
-        android:text="自主巡航模式(待开发)" />
+        android:text="智能自主巡航模式(待开发)" />
     <TextView
         android:id="@+id/text4"
-        android:layout_width="wrap_content"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/button11"
         android:layout_centerHorizontal="true"
-        android:text="Hello, I am a TextView" />
+        android:text="        最终实现智能线路巡检的全功能。" />
 </RelativeLayout>
